@@ -11,13 +11,39 @@ export default class ImageGenerationAdapterOpenAI implements ImageGenerationAdap
   constructor(options: AdapterOptions) {
     this.options = options;
     this.options.model = options.model || 'gpt-image-1';
-    this.options.n = options.n || 1;
   }
 
   validate() {
     if (!this.options.openAiApiKey) {
       throw new Error("API Key is required");
     }
+  }
+
+  outputImagesMaxCountSupported(): number {
+    if (this.options.model === 'gpt-image-1' || this.options.model === 'dall-e-2') {
+      return 10;
+    } else if (this.options.model === 'dall-e-3') {
+      return 1;
+    }
+  }
+  
+  outputDimensionsSupported(): string[] {
+    if (this.options.model === 'gpt-image-1') {
+      return ['1024x1024', '1536x1024', '1024x1536', 'auto'];
+    } else if (this.options.model === 'dall-e-2') {
+      return ['256x256', '512x512', '1024x1024'];
+    } else if (this.options.model === 'dall-e-3') {
+      return ['1024x1024', '1792x1024', '1024x1792'];
+    }
+  }
+
+  inputFileExtensionSupported(): string[] {
+    if (this.options.model === 'dall-e-2') {
+      return ['png'];
+    } else if (this.options.model === 'gpt-image-1' || this.options.model === 'dall-e-3') {
+      return ['png', 'jpg', 'jpeg'];
+    }
+    return [];
   }
 
   async generate(params: {
@@ -29,35 +55,15 @@ export default class ImageGenerationAdapterOpenAI implements ImageGenerationAdap
     imageURLs?: string[];
     error?: string;
   }> {
-    this.validate();
-
-    const { prompt, inputFiles = [], n = this.options.n} = params;
-    const { model } = this.options;
-
-    const size = params.size || this.supportedDimensions()[0];
-
-    if (model === 'dall-e-2' && n > 1) {
-      throw new Error('For model "dall-e-2", only one image can be generated at a time');
-    }
-
-    return this.generateOrEditImage({ prompt, inputFiles, n, size });
-  }
-
-  outputImagesMaxCountSupported(): number {
-    return this.options.model === 'gpt-image-1' ? 10 : 1;
-  }
-
-  supportedDimensions(): string[] {
-    const supportedDimensions = {
-      'gpt-image-1': ['1024x1024', '1024x1536', '1536x1024', 'auto'],
-      'dall-e-2': []//todo
-      // todo
-    }
+    const { model = this.options.model || 'dall-e-2' } = this.options;
+    const { prompt, inputFiles = [], size = this.outputDimensionsSupported()[0], n = 1 } = params;
     
-    return supportedDimensions[this.options.model];
-  }
+    if (n > this.outputImagesMaxCountSupported()) {
+      throw new Error(`For model "${model}", the maximum number of images is ${this.outputImagesMaxCountSupported()}`);
+    }
 
-  // todo other methods
+    return await this.generateOrEditImage({ prompt, inputFiles, n, size });
+  }
 
 
   stripLargeValuesInAnyObject(obj: any): any {
@@ -121,7 +127,19 @@ export default class ImageGenerationAdapterOpenAI implements ImageGenerationAdap
         { prompt, model, n, size },
         { headers }
       );
-      return response.data;
+  
+      const images = response.data?.data ?? [];
+      const imageURLs = images.map((item: any) => {
+        if (item.url) {
+          return item.url;
+        }
+        if (item.b64_json) {
+          return `data:image/png;base64,${item.b64_json}`;
+        }
+        return null;
+      }).filter((url: string | null) => url !== null);
+  
+      return { imageURLs };
     } else {
       const formData = new FormData();
       formData.append('prompt', prompt);

@@ -11,9 +11,5 @@ export interface AdapterOptions {
    * Default is `dall-e-2`. Use e.g. more expensive `dall-e-3`  or `gpt-image-1` for more powerful model.
    */
   model?: string;
-
-  /**
-   * Number of images to generate. Default is 1.
-   */
-  n?: number;
+  
 }
