@@ -124,7 +124,7 @@ export default class ImageGenerationAdapterOpenAI implements ImageGenerationAdap
     if (inputFiles.length === 0) {
       const response = await axios.post(
         'https://api.openai.com/v1/images/generations',
-        { prompt, model, n, size },
+        { prompt, model, n, size, ...(this.options.extraParams || {}) },
         { headers }
       );
   
@@ -146,6 +146,12 @@ export default class ImageGenerationAdapterOpenAI implements ImageGenerationAdap
       formData.append('model', model);
       formData.append('n', n.toString());
       formData.append('size', size);
+
+      if (this.options.extraParams) {
+        for (const [key, value] of Object.entries(this.options.extraParams)) {
+          formData.append(key, value);
+        }
+      }
 
       // todo if URL is already base64, don't need to fetch it
       for (let i = 0; i < inputFiles.length; i++) {

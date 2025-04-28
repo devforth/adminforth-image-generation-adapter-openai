@@ -11,5 +11,13 @@ export interface AdapterOptions {
    * Default is `dall-e-2`. Use e.g. more expensive `dall-e-3`  or `gpt-image-1` for more powerful model.
    */
   model?: string;
+
+  /**
+   * Extra parameters to be passed to the OpenAI API with every generation request.
+   * Check here for params https://platform.openai.com/docs/api-reference/images
+   */
+  extraParams?: {
+    [key: string]: any;
+  };
   
 }
