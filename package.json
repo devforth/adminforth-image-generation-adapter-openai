@@ -1,6 +1,6 @@
 {
-  "name": "@adminforth/completion-adapter-open-ai-chat-gpt",
-  "version": "1.0.2",
+  "name": "@adminforth/image-generation-adapter-openai",
+  "version": "1.0.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
