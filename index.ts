@@ -153,13 +153,20 @@ export default class ImageGenerationAdapterOpenAI implements ImageGenerationAdap
         }
       }
 
-      // todo if URL is already base64, don't need to fetch it
       for (let i = 0; i < inputFiles.length; i++) {
         const fileUrl = inputFiles[i];
-        const responseImage = await axios.get(fileUrl, { responseType: 'arraybuffer' });
-        const base64Data = Buffer.from(responseImage.data, 'binary').toString('base64');
-        const buffer = Buffer.from(base64Data, 'base64');
-        formData.append('image[]', buffer, { filename: `image_${i + 1}.png`, contentType: 'image/png' });
+        if (fileUrl.startsWith('http')) {
+          const responseImage = await axios.get(fileUrl, { responseType: 'arraybuffer' });
+          const base64Data = Buffer.from(responseImage.data, 'binary').toString('base64');
+          const buffer = Buffer.from(base64Data, 'base64');
+          formData.append('image[]', buffer, { filename: `image_${i + 1}.png`, contentType: 'image/png' });
+        } else if (fileUrl.startsWith('data:')) {
+          const base64Data = fileUrl.split(',')[1];
+          const buffer = Buffer.from(base64Data, 'base64');
+          formData.append('image[]', buffer, { filename: `image_${i + 1}.png`, contentType: 'image/png' });
+        } else {
+          throw new Error(`Unsupported file URL for attachment, it should be an absolute URL strating with http or a data URL, but got: ${fileUrl}`);
+        }
       }
 
       const editHeaders = {
