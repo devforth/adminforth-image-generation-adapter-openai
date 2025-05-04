@@ -67,27 +67,24 @@ export default class ImageGenerationAdapterOpenAI implements ImageGenerationAdap
 
 
   stripLargeValuesInAnyObject(obj: any): any {
-    if (typeof obj !== 'object' || obj === null) {
-      return obj;
+    if (typeof obj === 'string') {
+      return obj.length > 100 ? obj.slice(0, 100) + '...' : obj;
     }
+  
     if (Array.isArray(obj)) {
       return obj.map(item => this.stripLargeValuesInAnyObject(item));
     }
-    const newObj: any = {};
-    for (const key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        const value = obj[key];
-        if (typeof value === 'string' && value.length > 100) {
-          newObj[key] = value.substring(0, 100) + '...';
-        } else if (typeof value === 'object') {
-          newObj[key] = this.stripLargeValuesInAnyObject(value);
-        }
-        else {
-          newObj[key] = value;
-        }
-      }
+  
+    if (obj && typeof obj === 'object') {
+      return Object.fromEntries(
+        Object.entries(obj).map(([key, value]) => [
+          key,
+          this.stripLargeValuesInAnyObject(value),
+        ])
+      );
     }
-    return newObj;
+  
+    return obj;
   }
 
   async guessMimeTypeByB64(b64: string): Promise<string> {
@@ -112,7 +109,8 @@ export default class ImageGenerationAdapterOpenAI implements ImageGenerationAdap
     imageURLs?: string[];
     error?: string;
   }> {
-    process.env.HEAVY_DEBUG && console.log('Generating image with prompt:', inputFiles, prompt, n, size);
+    process.env.HEAVY_DEBUG && console.log('Generating image with prompt:', 
+      this.stripLargeValuesInAnyObject(inputFiles), prompt, n, size);
 
     const headers = {
       Authorization: `Bearer ${this.options.openAiApiKey}`,
