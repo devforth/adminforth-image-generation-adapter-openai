@@ -118,14 +118,17 @@ export default class ImageGenerationAdapterOpenAI implements ImageGenerationAdap
     };
 
     const model = this.options.model;
-    
+
     if (inputFiles.length === 0) {
-      const response = await axios.post(
-        'https://api.openai.com/v1/images/generations',
-        { prompt, model, n, size, ...(this.options.extraParams || {}) },
-        { headers }
-      );
-  
+      try {
+        const response = await axios.post(
+          'https://api.openai.com/v1/images/generations',
+          { prompt, model, n, size, ...(this.options.extraParams || {}) },
+          { headers }
+        );
+      } catch (error) {
+        return { error: error.response.data.error };
+      }
       const images = response.data?.data ?? [];
       const imageURLs = images.map((item: any) => {
         if (item.url) {
@@ -150,23 +153,26 @@ export default class ImageGenerationAdapterOpenAI implements ImageGenerationAdap
           formData.append(key, value);
         }
       }
-
-      for (let i = 0; i < inputFiles.length; i++) {
-        const fileUrl = inputFiles[i];
-        if (fileUrl.startsWith('http')) {
-          const responseImage = await axios.get(fileUrl, { responseType: 'arraybuffer' });
-          const base64Data = Buffer.from(responseImage.data, 'binary').toString('base64');
-          const buffer = Buffer.from(base64Data, 'base64');
-          formData.append('image[]', buffer, { filename: `image_${i + 1}.png`, contentType: 'image/png' });
-        } else if (fileUrl.startsWith('data:')) {
-          const base64Data = fileUrl.split(',')[1];
-          const buffer = Buffer.from(base64Data, 'base64');
-          formData.append('image[]', buffer, { filename: `image_${i + 1}.png`, contentType: 'image/png' });
-        } else {
-          throw new Error(`Unsupported file URL for attachment, it should be an absolute URL strating with http or a data URL, but got: ${fileUrl}`);
+        for (let i = 0; i < inputFiles.length; i++) {
+          const fileUrl = inputFiles[i];
+          if (fileUrl.startsWith('http')) {
+            try {
+              const responseImage = await axios.get(fileUrl, { responseType: 'arraybuffer' });
+            } catch (error) {
+              console.error('Error fetching input file:', error);
+              return { error: {message:  `Error attaching input files`  } };
+            }
+            const base64Data = Buffer.from(responseImage.data, 'binary').toString('base64');
+            const buffer = Buffer.from(base64Data, 'base64');
+            formData.append('image[]', buffer, { filename: `image_${i + 1}.png`, contentType: 'image/png' });
+          } else if (fileUrl.startsWith('data:')) {
+            const base64Data = fileUrl.split(',')[1];
+            const buffer = Buffer.from(base64Data, 'base64');
+            formData.append('image[]', buffer, { filename: `image_${i + 1}.png`, contentType: 'image/png' });
+          } else {
+            throw new Error(`Unsupported file URL for attachment, it should be an absolute URL strating with http or a data URL, but got: ${fileUrl}`);
+          }
         }
-      }
-
       const editHeaders = {
         Authorization: `Bearer ${this.options.openAiApiKey}`,
         ...formData.getHeaders(),
