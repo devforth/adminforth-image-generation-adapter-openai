@@ -120,14 +120,15 @@ export default class ImageGenerationAdapterOpenAI implements ImageGenerationAdap
     const model = this.options.model;
 
     if (inputFiles.length === 0) {
+      let response;
       try {
-        const response = await axios.post(
+        response = await axios.post(
           'https://api.openai.com/v1/images/generations',
           { prompt, model, n, size, ...(this.options.extraParams || {}) },
           { headers }
         );
       } catch (error) {
-        return { error: error.response.data.error };
+        return { error: error.response.data.error.message };
       }
       const images = response.data?.data ?? [];
       const imageURLs = images.map((item: any) => {
@@ -156,11 +157,12 @@ export default class ImageGenerationAdapterOpenAI implements ImageGenerationAdap
         for (let i = 0; i < inputFiles.length; i++) {
           const fileUrl = inputFiles[i];
           if (fileUrl.startsWith('http')) {
+            let responseImage;
             try {
-              const responseImage = await axios.get(fileUrl, { responseType: 'arraybuffer' });
+              responseImage = await axios.get(fileUrl, { responseType: 'arraybuffer' });
             } catch (error) {
               console.error('Error fetching input file:', error);
-              return { error: {message:  `Error attaching input files`  } };
+              return { error: `Error attaching input files` };
             }
             const base64Data = Buffer.from(responseImage.data, 'binary').toString('base64');
             const buffer = Buffer.from(base64Data, 'base64');
@@ -195,7 +197,7 @@ export default class ImageGenerationAdapterOpenAI implements ImageGenerationAdap
         }
       } catch (error) {
         console.error('Error generating image:', error.response);
-        return { error: `Error generating image: ${error.message}, ${JSON.stringify(error.response)}` };
+        return { error: `Error generating image: ${error.message}` };
       }
       
     }
