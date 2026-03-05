@@ -15,6 +15,7 @@
   "dependencies": {
     "axios": "^1.9.0",
     "file-type": "^20.5.0",
+    "form-data": "^4.0.5",
     "typescript": "^5.8.3"
   },
   "peerDependencies": {
