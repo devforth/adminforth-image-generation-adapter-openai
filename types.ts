@@ -17,6 +17,7 @@ export interface AdapterOptions {
    * Check here for params https://platform.openai.com/docs/api-reference/images
    */
   extraParams?: {
+    quality?: 'low' | 'medium' | 'high' | 'auto';
     [key: string]: any;
   };
   
