@@ -20,30 +20,28 @@ export default class ImageGenerationAdapterOpenAI implements ImageGenerationAdap
   }
 
   outputImagesMaxCountSupported(): number {
-    if (this.options.model === 'gpt-image-1' || this.options.model === 'dall-e-2') {
-      return 10;
-    } else if (this.options.model === 'dall-e-3') {
-      return 1;
-    }
+    return 10;
   }
   
   outputDimensionsSupported(): string[] {
-    if (this.options.model === 'gpt-image-1') {
+    if (this.options.model === 'gpt-image-2') {
+      return [
+        '1024x1024', // square
+        '1536x1024', // landscape
+        '1024x1536', // portrait
+        '2048x2048', // 2K square
+        '2048x1152', // 2K landscape
+        '3840x2160', // 4K landscape
+        '2160x3840', // 4K portrait
+        'auto', // default
+      ];
+    } else if (this.options.model === 'gpt-image-1') {
       return ['1024x1024', '1536x1024', '1024x1536', 'auto'];
-    } else if (this.options.model === 'dall-e-2') {
-      return ['256x256', '512x512', '1024x1024'];
-    } else if (this.options.model === 'dall-e-3') {
-      return ['1024x1024', '1792x1024', '1024x1792'];
     }
   }
 
   inputFileExtensionSupported(): string[] {
-    if (this.options.model === 'dall-e-2') {
-      return ['png'];
-    } else if (this.options.model === 'gpt-image-1' || this.options.model === 'dall-e-3') {
-      return ['png', 'jpg', 'jpeg'];
-    }
-    return [];
+    return ['png', 'jpg', 'jpeg'];
   }
 
   async generate(params: {
@@ -55,7 +53,7 @@ export default class ImageGenerationAdapterOpenAI implements ImageGenerationAdap
     imageURLs?: string[];
     error?: string;
   }> {
-    const { model = this.options.model || 'dall-e-2' } = this.options;
+    const { model = this.options.model || 'gpt-image-1' } = this.options;
     const { prompt, inputFiles = [], size = this.outputDimensionsSupported()[0], n = 1 } = params;
     
     if (n > this.outputImagesMaxCountSupported()) {
