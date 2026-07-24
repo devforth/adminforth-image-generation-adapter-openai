@@ -13,7 +13,7 @@
   "keywords": [],
   "author": "DevForth (https://devforth.io)",
   "license": "MIT",
-  "description": "",
+  "description": "AdminForth image generation adapter for OpenAI.",
   "devDependencies": {
     "adminforth": "^3.0.1",
     "semantic-release": "^24.2.1",
@@ -52,5 +52,9 @@
         "prerelease": true
       }
     ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/devforth/adminforth-image-generation-adapter-openai.git"
   }
 }
