@@ -53,6 +53,7 @@
       }
     ]
   },
+  "homepage": "https://adminforth.dev/docs/tutorial/Adapters/image-generation-adapters/#openai-image-generation-adapter",
   "repository": {
     "type": "git",
     "url": "https://github.com/devforth/adminforth-image-generation-adapter-openai.git"
