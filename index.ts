@@ -3,7 +3,7 @@ import FormData from 'form-data';
 import axios from 'axios';
 import { fileTypeFromBuffer } from 'file-type';
 import type { ImageGenerationAdapter } from "adminforth";
-
+import { afLogger, checkIfLinkInAllowedHosts } from "adminforth";
 
 export default class ImageGenerationAdapterOpenAI implements ImageGenerationAdapter {
   options: AdapterOptions;
@@ -11,6 +11,9 @@ export default class ImageGenerationAdapterOpenAI implements ImageGenerationAdap
   constructor(options: AdapterOptions) {
     this.options = options;
     this.options.model = options.model || 'gpt-image-1';
+    if (!this.options.attachImagesAllowedHosts) {
+      afLogger.warn('No attachImagesAllowedHosts specified, images will be downloaded from any host. This may be a security risk.');
+    }
   }
 
   validate() {
@@ -154,10 +157,14 @@ export default class ImageGenerationAdapterOpenAI implements ImageGenerationAdap
       }
         for (let i = 0; i < inputFiles.length; i++) {
           const fileUrl = inputFiles[i];
+          checkIfLinkInAllowedHosts(fileUrl, this.options.attachImagesAllowedHosts);
           if (fileUrl.startsWith('http')) {
             let responseImage;
             try {
               responseImage = await axios.get(fileUrl, { responseType: 'arraybuffer' });
+              if (responseImage.status >= 300 && responseImage.status < 400) {
+                throw new Error(`Failed to fetch image from URL: ${fileUrl}, status: ${responseImage.status}. Redirects are not allowed.`);
+              }
             } catch (error) {
               console.error('Error fetching input file:', error);
               return { error: `Error attaching input files` };

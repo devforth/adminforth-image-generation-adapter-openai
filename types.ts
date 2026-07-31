@@ -21,4 +21,12 @@ export interface AdapterOptions {
     [key: string]: any;
   };
   
+
+  /**
+   * Hosts which input images are allowed to be downloaded from, e.g. `['my-bucket.s3.amazonaws.com']`.
+   * When not set, images are downloaded from any host.
+   * Entries are matched case-insensitively, `example.com` matches that host only, `.example.com` (or `*.example.com`)
+   * matches it and its subdomains.
+   */
+  attachImagesAllowedHosts?: string[];
 }
