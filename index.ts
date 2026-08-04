@@ -8,11 +8,14 @@ import { afLogger, checkIfLinkInAllowedHosts } from "adminforth";
 export default class ImageGenerationAdapterOpenAI implements ImageGenerationAdapter {
   options: AdapterOptions;
 
+  private static allowedHostsWarningShown = false;
+
   constructor(options: AdapterOptions) {
     this.options = options;
     this.options.model = options.model || 'gpt-image-1';
-    if (!this.options.attachImagesAllowedHosts) {
-      afLogger.warn('No attachImagesAllowedHosts specified, images will be downloaded from any host. This may be a security risk.');
+    if (!this.options.attachImagesAllowedHosts && !ImageGenerationAdapterOpenAI.allowedHostsWarningShown) {
+      ImageGenerationAdapterOpenAI.allowedHostsWarningShown = true;
+      afLogger.warn('OpenAI Image generation adapter: No attachImagesAllowedHosts specified, images will be downloaded from any host. This may be a security risk.');
     }
   }
 
