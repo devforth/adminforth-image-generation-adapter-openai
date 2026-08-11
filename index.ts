@@ -204,7 +204,9 @@ export default class ImageGenerationAdapterOpenAI implements ImageGenerationAdap
           ),
         }
       } catch (error) {
-        console.error('Error generating image:', error.response);
+        const status = error.response?.status;
+        const apiMessage = error.response?.data?.error?.message ?? error.message;
+        console.error(`Error editing image (status ${status}): ${apiMessage}`); 
         return { error: `Error generating image: ${error.message}` };
       }
       
