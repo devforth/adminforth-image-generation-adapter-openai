@@ -12,7 +12,7 @@ export default class ImageGenerationAdapterOpenAI implements ImageGenerationAdap
 
   constructor(options: AdapterOptions) {
     this.options = options;
-    this.options.model = options.model || 'gpt-image-1';
+    this.options.model = options.model || 'gpt-image-2.6-flare';
     if (!this.options.attachImagesAllowedHosts && !ImageGenerationAdapterOpenAI.allowedHostsWarningShown) {
       ImageGenerationAdapterOpenAI.allowedHostsWarningShown = true;
       afLogger.warn('OpenAI Image generation adapter: No attachImagesAllowedHosts specified, images will be downloaded from any host. This may be a security risk.');
@@ -30,20 +30,19 @@ export default class ImageGenerationAdapterOpenAI implements ImageGenerationAdap
   }
   
   outputDimensionsSupported(): string[] {
-    if (this.options.model === 'gpt-image-2') {
-      return [
-        '1024x1024', // square
-        '1536x1024', // landscape
-        '1024x1536', // portrait
-        '2048x2048', // 2K square
-        '2048x1152', // 2K landscape
-        '3840x2160', // 4K landscape
-        '2160x3840', // 4K portrait
-        'auto', // default
-      ];
-    } else if (this.options.model === 'gpt-image-1') {
+    if (this.options.model.startsWith('gpt-image-1')) {
       return ['1024x1024', '1536x1024', '1024x1536', 'auto'];
     }
+    return [
+      '1024x1024', // square
+      '1536x1024', // landscape
+      '1024x1536', // portrait
+      '2048x2048', // 2K square
+      '2048x1152', // 2K landscape
+      '3840x2160', // 4K landscape
+      '2160x3840', // 4K portrait
+      'auto', // default
+    ];
   }
 
   inputFileExtensionSupported(): string[] {
@@ -59,7 +58,7 @@ export default class ImageGenerationAdapterOpenAI implements ImageGenerationAdap
     imageURLs?: string[];
     error?: string;
   }> {
-    const { model = this.options.model || 'gpt-image-1' } = this.options;
+    const { model } = this.options;
     const { prompt, inputFiles = [], size = this.outputDimensionsSupported()[0], n = 1 } = params;
     
     if (n > this.outputImagesMaxCountSupported()) {

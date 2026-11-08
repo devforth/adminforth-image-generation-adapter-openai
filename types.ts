@@ -8,7 +8,7 @@ export interface AdapterOptions {
 
   /**
    * Model name. Go to https://platform.openai.com/docs/models, select model and copy name.
-   * Default is `dall-e-2`. Use e.g. more expensive `dall-e-3`  or `gpt-image-1` for more powerful model.
+   * Default is `gpt-image-2.6-flare`. Use `gpt-image-2.6-sunburst` for detailed work.
    */
   model?: string;
 
@@ -17,7 +17,7 @@ export interface AdapterOptions {
    * Check here for params https://platform.openai.com/docs/api-reference/images
    */
   extraParams?: {
-    quality?: 'low' | 'medium' | 'high' | 'auto';
+    quality?: 'low' | 'medium' | 'high' | 'xhigh' | 'max' | 'auto';
     [key: string]: any;
   };
   
